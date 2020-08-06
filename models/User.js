@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 const UserSchema = new mongoose.Schema({
   googleId: {
     type: String,
+    default: null
+  },
+  facebookId: {
+    type: String,
+    default: null
   },
   email: {
     type: String,
@@ -10,14 +15,11 @@ const UserSchema = new mongoose.Schema({
   },
   username: {
     type: String,
-    required: true,
+    default: null
   },
   createdAt: {
       type: Date,
       default: Date.now
-  },
-  image: {
-      type: String,
   }
 });
 

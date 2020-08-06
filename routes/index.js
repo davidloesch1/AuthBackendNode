@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { ensureAuth, ensureLoggedIn } = require('../middleware/auth')
+const { ensureAuth, ensureNotLoggedIn } = require('../middleware/auth')
 
-router.get("/", ensureNotLoggedIn(req, res) => {
+router.get("/", ensureNotLoggedIn, (req, res) =>{
   res.send("login!");
 });
 
-router.get("/dashboard",ensureAuth (req, res) => {
+router.get("/dashboard", ensureAuth, (req, res) =>{
   res.send("dashboard!");
 });
 
