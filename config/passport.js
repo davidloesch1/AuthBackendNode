@@ -1,6 +1,7 @@
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const FacebookStrategy = require("passport-facebook").Strategy;
 const LocalStrategy = require("passport-local").Strategy;
+const bcrypt = require('bcryptjs')
 const User = require("../models/User");
 
 module.exports = function (passport) {
@@ -64,22 +65,34 @@ module.exports = function (passport) {
 
   passport.use(
     new LocalStrategy(async (email, password, done) => {
-      console.log(email, password)
-      const newUser = {
-        email: email,
-        password: password,
-      };
-      try {
-        let user = await User.findOne({ email: newUser.email });
-        console.log(user);
-        if (user) {
-          done(null, user);
-        } else {
-          user = await User.create(newUser);
-          console.log("This is a new user", user);
-          done(null, user);
-        }
-      } catch (err) {}
+      User.findOne({email: email}, (err, user) => {
+        if(err) throw err;
+        if(!user) return done(null, false)
+        bcrypt.compare(password, user.password, (err, result) => {
+          if(err) throw err;
+          if(result === true) {
+            return done(null, user)
+          } else{
+            return done(null, false)
+          }
+        })
+      })
+
+      // const newUser = {
+      //   email: email,
+      //   password: password,
+      // };
+      // try {
+      //   let user = await User.findOne({ email: newUser.email });
+      //   console.log(user);
+      //   if (user) {
+      //     done(null, user);
+      //   } else {
+      //     user = await User.create(newUser);
+      //     console.log("This is a new user", user);
+      //     done(null, user);
+      //   }
+      // } catch (err) {}
     })
   );
 
