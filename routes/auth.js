@@ -19,7 +19,9 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
-  (req, res) => res.redirect("/dashboard")
+  (req, res) => {
+    res.send(req.user);
+  }
 );
 
 //Auth with Facebook
@@ -38,16 +40,33 @@ router.get(
 );
 
 //Auth with Username and Password
-router.get(
-  "/login",
-  passport.authenticate("local", { failureRedirect: "/login" }),
-  (req, res) => res.redirect("/dashboard")
-);
-
+// router.post(
+//   "/login",
+//   passport.authenticate("local", {
+//     successRedirect: "/dashboard",
+//     failureRedirect: "/",
+//   }),
+//   (req, res) => {
+//     console.log(req.user);
+//   }
+// );
+router.post("/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) throw err;
+    if (!user) res.send(info.message);
+    else {
+      req.logIn(user, (err) => {
+        if (err) throw err;
+        res.send("Successfully Authenticated");
+        console.log(req.user);
+      });
+    }
+  })(req, res, next);
+});
 //logout user
 router.get("/logout", (req, res) => {
   req.logout();
-  res.redirect("/");
+  res.send("successfully logged out")
 });
 
 module.exports = router;

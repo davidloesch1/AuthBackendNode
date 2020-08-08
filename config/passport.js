@@ -1,11 +1,11 @@
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const FacebookStrategy = require("passport-facebook").Strategy;
+// const FacebookStrategy = require("passport-facebook").Strategy;
 const LocalStrategy = require("passport-local").Strategy;
-const bcrypt = require('bcryptjs')
+const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 
 module.exports = function (passport) {
-  //Google Strategy for finding or creating user in MongoDB
+  // Google Strategy for finding or creating user in MongoDB
   passport.use(
     new GoogleStrategy(
       {
@@ -33,67 +33,75 @@ module.exports = function (passport) {
     )
   );
 
-  //Facebook Strategy for finding or creating user in MongoDB
+  // //Facebook Strategy for finding or creating user in MongoDB
+  // passport.use(
+  //   new FacebookStrategy(
+  //     {
+  //       clientID: process.env.FACEBOOK_ID,
+  //       clientSecret: process.env.FACEBOOK_SECRET,
+  //       callbackURL: "/auth/facebook/callback",
+  //       profileFields: ["id", "emails", "name"],
+  //       enableProof: true,
+  //     },
+  //     async (accessToken, refreshToken, profile, done) => {
+  //       const newUser = {
+  //         facebookId: profile.id,
+  //         email: profile.emails[0].value,
+  //         username: profile.displayName,
+  //       };
+  //       try {
+  //         let user = await User.findOne({ email: newUser.email });
+  //         console.log(user);
+  //         if (user) {
+  //           done(null, user);
+  //         } else {
+  //           user = await User.create(newUser);
+  //           done(null, user);
+  //         }
+  //       } catch (err) {}
+  //     }
+  //   )
+  // );
+
   passport.use(
-    new FacebookStrategy(
+    new LocalStrategy(
       {
-        clientID: process.env.FACEBOOK_ID,
-        clientSecret: process.env.FACEBOOK_SECRET,
-        callbackURL: "/auth/facebook/callback",
-        profileFields: ["id", "emails", "name"],
-        enableProof: true,
+        usernameField: "email",
+        passwordField: "password",
       },
-      async (accessToken, refreshToken, profile, done) => {
-        const newUser = {
-          facebookId: profile.id,
-          email: profile.emails[0].value,
-          username: profile.displayName,
-        };
-        try {
-          let user = await User.findOne({ email: newUser.email });
-          console.log(user);
-          if (user) {
-            done(null, user);
-          } else {
-            user = await User.create(newUser);
-            done(null, user);
-          }
-        } catch (err) {}
+      (email, password, done) => {
+        console.log("made it to the login strategy");
+        User.findOne({ email: email }, (err, user) => {
+          if (err) return done(err);
+          if (!user) return done(null, false, { message: "incorrect email" });
+          bcrypt.compare(password, user.password, (err, result) => {
+            if (err) throw err;
+            if (result === true) {
+              console.log("successfully logged in");
+              return done(null, user);
+            } else {
+              return done(null, false, { message: "incorrect password" });
+            }
+          });
+        });
+
+        // const newUser = {
+        //   email: email,
+        //   password: password,
+        // };
+        // try {
+        //   let user = await User.findOne({ email: newUser.email });
+        //   console.log(user);
+        //   if (user) {
+        //     done(null, user);
+        //   } else {
+        //     user = await User.create(newUser);
+        //     console.log("This is a new user", user);
+        //     done(null, user);
+        //   }
+        // } catch (err) {}
       }
     )
-  );
-
-  passport.use(
-    new LocalStrategy(async (email, password, done) => {
-      User.findOne({email: email}, (err, user) => {
-        if(err) throw err;
-        if(!user) return done(null, false)
-        bcrypt.compare(password, user.password, (err, result) => {
-          if(err) throw err;
-          if(result === true) {
-            return done(null, user)
-          } else{
-            return done(null, false)
-          }
-        })
-      })
-
-      // const newUser = {
-      //   email: email,
-      //   password: password,
-      // };
-      // try {
-      //   let user = await User.findOne({ email: newUser.email });
-      //   console.log(user);
-      //   if (user) {
-      //     done(null, user);
-      //   } else {
-      //     user = await User.create(newUser);
-      //     console.log("This is a new user", user);
-      //     done(null, user);
-      //   }
-      // } catch (err) {}
-    })
   );
 
   passport.serializeUser((user, done) => {
@@ -101,7 +109,7 @@ module.exports = function (passport) {
   });
 
   passport.deserializeUser((id, done) => {
-    User.findById(id, (err, user) => {
+    User.findById({ _id: id }, (err, user) => {
       done(err, user);
     });
   });
