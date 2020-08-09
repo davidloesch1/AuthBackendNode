@@ -6,11 +6,9 @@ const morgan = require("morgan");
 const passport = require("passport");
 const session = require("express-session");
 const MongoStore = require("connect-mongo")(session);
-const bcrypt = require("bcryptjs");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const User = require("./models/User");
 const app = express();
 
 //Load Config.env file
@@ -32,7 +30,7 @@ app.use(
 //Sessions
 app.use(
   session({
-    secret: "secret",
+    secret: process.env.SECRET,
     resave: false,
     saveUninitialized: false,
     store: new MongoStore({ mongooseConnection: mongoose.connection }),
@@ -40,7 +38,7 @@ app.use(
 );
 
 //Cookie Parser middleware
-app.use(cookieParser("secret"));
+app.use(cookieParser(process.env.SECRET));
 
 //Passport Middleware
 app.use(passport.initialize());
@@ -56,46 +54,13 @@ if (process.env.NODE_ENV === "development") {
 
 //<----------------------------End of Middleware ------------------------->
 
-//Routes
-// app.use("/", require("./routes/index"));
+//<-----------------------------Routes------------------------------------>
 app.use("/auth", require("./routes/auth"));
-
-app.post("/login", (req, res, next) => {
-  passport.authenticate("local", (err, user, info) => {
-    if (err) throw err;
-    if (!user) res.send(info.message);
-    else {
-      req.logIn(user, (err) => {
-        if (err) throw err;
-        res.send("Successfully Authenticated");
-        console.log(req.user);
-      });
-    }
-  })(req, res, next);
-});
-
-app.post("/register", (req, res) => {
-  User.findOne({ email: req.body.email }, async (err, doc) => {
-    if (err) throw err;
-    if (doc) {
-      res.send("User Already Exists");
-      console.log("User Already Exists Backend");
-    }
-    if (!doc) {
-      const hash = await bcrypt.hash(req.body.password, 10);
-      const newUser = new User({
-        email: req.body.email,
-        password: hash,
-      });
-      await newUser.save();
-      res.send("User Created");
-    }
-  });
-});
-
 app.get("/user", (req, res) => {
   res.send(req.user); // The req.user stores the entire user that has been authenticated inside of it.
 });
+
+//<------------------------End of Routes------------------------------------>
 
 app.use((req, res, next) => {
   console.log(req.session);

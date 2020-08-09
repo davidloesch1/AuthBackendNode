@@ -1,6 +1,9 @@
 const express = require("express");
 const passport = require("passport");
 const router = express.Router();
+const User = require("../models/User");
+const bcrypt = require("bcryptjs");
+
 
 // url routes ending in /auth
 
@@ -20,7 +23,8 @@ router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/" }),
   (req, res) => {
-    res.send(req.user);
+    let token = req.user.token
+    res.redirect("http://localhost:3000/dashboard/?token=" + token)
   }
 );
 
@@ -40,16 +44,6 @@ router.get(
 );
 
 //Auth with Username and Password
-// router.post(
-//   "/login",
-//   passport.authenticate("local", {
-//     successRedirect: "/dashboard",
-//     failureRedirect: "/",
-//   }),
-//   (req, res) => {
-//     console.log(req.user);
-//   }
-// );
 router.post("/login", (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) throw err;
@@ -57,12 +51,38 @@ router.post("/login", (req, res, next) => {
     else {
       req.logIn(user, (err) => {
         if (err) throw err;
-        res.send("Successfully Authenticated");
+        res.send(req.user)
         console.log(req.user);
       });
     }
   })(req, res, next);
 });
+
+//Register a new user
+router.post("/register", (req, res) => {
+  if(req.body.email === "" || req.body.password === "") res.send("Must provide username or password")
+  User.findOne({ email: req.body.email }, async (err, doc) => {
+    if (err) throw err;
+    if (doc) {
+      res.send("User Already Exists");
+      console.log("User Already Exists Backend");
+    }
+    if (!doc) {
+      const hash = await bcrypt.hash(req.body.password, 10);
+      const newUser = new User({
+        email: req.body.email,
+        password: hash,
+      });
+      await newUser.save();
+      res.send("User Created");
+    }
+  });
+});
+
+
+
+
+
 //logout user
 router.get("/logout", (req, res) => {
   req.logout();
