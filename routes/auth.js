@@ -40,7 +40,10 @@ router.get(
 router.get(
   "/facebook/callback",
   passport.authenticate("facebook", { failureRedirect: "/" }),
-  (req, res) => res.redirect("/dashboard")
+  (req, res) => {
+    let token = req.user.token
+    res.redirect("http://localhost:3000/dashboard/?token=" + token)
+  }
 );
 
 //Auth with Username and Password
@@ -51,7 +54,7 @@ router.post("/login", (req, res, next) => {
     else {
       req.logIn(user, (err) => {
         if (err) throw err;
-        res.send(req.user)
+        res.redirect("http://localhost:3000/dashboard" + req.user.username)
         console.log(req.user);
       });
     }
@@ -79,14 +82,10 @@ router.post("/register", (req, res) => {
   });
 });
 
-
-
-
-
 //logout user
 router.get("/logout", (req, res) => {
   req.logout();
-  res.send("successfully logged out")
+  res.send("loggedout!!!1!")
 });
 
 module.exports = router;

@@ -55,6 +55,8 @@ if (process.env.NODE_ENV === "development") {
 //<----------------------------End of Middleware ------------------------->
 
 //<-----------------------------Routes------------------------------------>
+app.use("/", require("./routes/index"))
+app.use('/map', require('./routes/map'))
 app.use("/auth", require("./routes/auth"));
 app.get("/user", (req, res) => {
   res.send(req.user); // The req.user stores the entire user that has been authenticated inside of it.
