@@ -14,6 +14,7 @@ router.post("/", async (req, res) => {
     },
   });
   await map.save();
+  res.send("map added")
 });
 
 module.exports = router;

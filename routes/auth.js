@@ -48,13 +48,14 @@ router.get(
 
 //Auth with Username and Password
 router.post("/login", (req, res, next) => {
+  console.log(req.body)
   passport.authenticate("local", (err, user, info) => {
     if (err) throw err;
     if (!user) res.send(info.message);
     else {
       req.logIn(user, (err) => {
         if (err) throw err;
-        res.redirect("http://localhost:3000/dashboard" + req.user.username)
+        res.send("logged in")
         console.log(req.user);
       });
     }
