@@ -20,12 +20,13 @@ connectDB();
 //Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(
-  cors({
-    origin: "http://localhost:3000", //<---Location of the react app that we're connecting to
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: "http://localhost:3000", //<---Location of the react app that we're connecting to
+//     credentials: true,
+//   })
+// );
+app.use(express.static(path.join(__dirname, "client/build")));
 
 //Sessions
 app.use(
@@ -55,8 +56,8 @@ if (process.env.NODE_ENV === "development") {
 //<----------------------------End of Middleware ------------------------->
 
 //<-----------------------------Routes------------------------------------>
-app.use("/", require("./routes/index"))
-app.use('/map', require('./routes/map'))
+app.use("/", require("./routes/index"));
+app.use("/map", require("./routes/map"));
 app.use("/auth", require("./routes/auth"));
 app.get("/user", (req, res) => {
   res.send(req.user); // The req.user stores the entire user that has been authenticated inside of it.
