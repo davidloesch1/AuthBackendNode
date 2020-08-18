@@ -20,13 +20,12 @@ connectDB();
 //Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(
-//   cors({
-//     origin: "http://localhost:3000", //<---Location of the react app that we're connecting to
-//     credentials: true,
-//   })
-// );
-app.use(express.static(path.join(__dirname, "client/build")));
+app.use(
+  cors({
+    origin: "http://davidfordigitalharvest.online", //<---Location of the react app that we're connecting to
+    credentials: true,
+  })
+);
 
 //Sessions
 app.use(
